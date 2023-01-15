@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static me.tamarazolotovskaya.recipeseverydayapp.services.impl.IngredientServiceImpl.ingredientMap;
+
 
 @Service
 public class RecipeServiceImpl implements RecipeService {
