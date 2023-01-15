@@ -1,5 +1,8 @@
+package me.tamarazolotovskaya.recipeseverydayapp.services.impl;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.tamarazolotovskaya.recipeseverydayapp.services.FileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +41,3 @@ public class FileServiceImpl implements FileService {
 
 
 }
-Footer
-        © 2023 GitHub, Inc.
-        Footer navigation
-        Terms

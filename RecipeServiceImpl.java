@@ -1,5 +1,12 @@
+
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 
 import java.util.Collection;
@@ -7,17 +14,39 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+import static me.tamarazolotovskaya.recipeseverydayapp.services.impl.IngredientServiceImpl.ingredientMap;
 
 @Service
 public class RecipeServiceImpl implements RecipeService {
 
-    private static Map<Integer, Recipe> recipeMap = new HashMap<>();
+    private static HashMap<Integer, Recipe> recipeMap = new HashMap<>();
     private static int recipeId = 0;
+
+    @Value("${name.of.recipes.data.file}")
+    private String recipeDataFileName;
+
+    private final FileService fileService;
+
+    public RecipeServiceImpl(FileService fileService) {
+        this.fileService = fileService;
+    }
+
+    @PostConstruct
+    private void init() {
+        String json = fileService.readFromFile(recipeDataFileName);
+        try {
+            ingredientMap =
+                    new ObjectMapper().readValue(json, new TypeReference<HashMap<Integer, Ingredient>>() {
+                    });
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public int addRecipe(Recipe recipe) {
         recipeMap.put(++recipeId, recipe);
+        fileService.saveToJsonFile(recipeMap, recipeDataFileName);
         return recipeId;
     }
 
@@ -38,6 +67,7 @@ public class RecipeServiceImpl implements RecipeService {
     public Recipe editRecipe(int id, Recipe recipe) {
         if (recipeMap.containsKey(id)) {
             recipeMap.put(id, recipe);
+            fileService.saveToJsonFile(recipeMap, recipeDataFileName);
             return recipe;
         }
         return null;
@@ -47,6 +77,7 @@ public class RecipeServiceImpl implements RecipeService {
     public boolean deleteRecipe(int id) {
         if (recipeMap.containsKey(id)) {
             recipeMap.remove(id);
+            fileService.saveToJsonFile(recipeMap, recipeDataFileName);
             return true;
         }
         return false;
