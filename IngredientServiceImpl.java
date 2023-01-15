@@ -1,5 +1,10 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -7,13 +12,33 @@ import java.util.Map;
 
 @Service
 public class IngredientServiceImpl implements IngredientService {
-    public static Map<Integer, Ingredient> ingredientMap = new HashMap<>();
+    public static HashMap<Integer, Ingredient> ingredientMap = new HashMap<>();
     private static int ingredientId = 0;
+    private final FileService fileService;
 
+    public IngredientServiceImpl(FileService fileService) {
+        this.fileService = fileService;
+    }
+
+    @Value("${name.of.ingredients.data.file}")
+    private String ingredientDataFileName;
+
+    @PostConstruct
+    private void init() {
+        String json = fileService.readFromFile(ingredientDataFileName);
+        try {
+            ingredientMap =
+                    new ObjectMapper().readValue(json, new TypeReference<HashMap<Integer, Ingredient>>() {
+                    });
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public int addIngredient(Ingredient ingredient) {
         ingredientMap.put(++ingredientId, ingredient);
+        fileService.saveToJsonFile(ingredientMap, ingredientDataFileName);
         return ingredientId;
     }
 
@@ -34,6 +59,7 @@ public class IngredientServiceImpl implements IngredientService {
     public Ingredient editIngredient(int id, Ingredient ingredient) {
         if (ingredientMap.containsKey(id)) {
             ingredientMap.put(id, ingredient);
+            fileService.saveToJsonFile(ingredientMap, ingredientDataFileName);
             return ingredient;
         }
         return null;
@@ -43,9 +69,11 @@ public class IngredientServiceImpl implements IngredientService {
     public boolean deleteIngredient(int id) {
         if (ingredientMap.containsKey(id)) {
             ingredientMap.remove(id);
+            fileService.saveToJsonFile(ingredientMap, ingredientDataFileName);
             return true;
         }
         return false;
     }
+
 
 }

@@ -1,6 +1,7 @@
 import lombok.*;
 
 @Data
+@NoArgsConstructor
 public class Ingredient {
     @NonNull
     private String title;
